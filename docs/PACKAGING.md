@@ -7,7 +7,7 @@ cancellation. If the build succeeded and shutdown returns a wrapped
 keeps the packaged result. Other shutdown errors remain fatal. When the build
 failed, any shutdown error is joined to the build error so both remain visible.
 
-The companion's Docker lifecycle is owned by core. The pinned core v0.17.0 also
+The companion's Docker lifecycle is owned by core. The pinned core v0.19.4 also
 applies its own ten-second timeout to the removal request; the outer two-minute
 context does not override that timeout. A removal timeout can leave a container
 behind; this change preserves the artifact and reports its container name, and

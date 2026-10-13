@@ -52,7 +52,7 @@ it was seen rather than where it lives.
 ## Build and test
 
 Derived from `.github/workflows/ci.yml`. The Go version comes from `go.mod`
-(1.27.0) — CI reads it with `go-version-file`, so it is never pinned twice.
+(1.27.2) — CI reads it with `go-version-file`, so it is never pinned twice.
 
 ```bash
 go build ./...          # CI: Build
@@ -106,7 +106,9 @@ rather than re-deriving from `go list`.
   `.claude/skills/release-go-agent/`.
 - **Releases require CGO** — core's source inspection uses real tree-sitter
   grammars, so every target is built through the `goreleaser-cross` image, whose
-  Go version must match `go.mod`. Disabling CGO to make a build pass ships an
+  Go version must match `go.mod`. **Known gap:** no image ships Go 1.27.2 yet, so
+  releases build in `v1.27.1-1` and Go downloads 1.27.2 — see
+  `.claude/skills/release-go-agent/`. Disabling CGO to make a build pass ships an
   agent whose parser cannot work.
 - **The archive name is a contract with core's downloader**
   (`service-{name}_{version}_{os}_{arch}.tar.gz`). Renaming it breaks install,
