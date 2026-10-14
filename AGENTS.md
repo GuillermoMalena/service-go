@@ -20,6 +20,22 @@ These land hard here: this repo is a *base* others embed, so a defect surfaces
 in a specialization or a user's service, and the temptation is to patch it where
 it was seen rather than where it lives.
 
+- **Prove reuse before you build.** The default answer is that the platform
+  already has it and your change fills a gap or adds a helper on it, so the PR
+  body names what you reused and what you deliberately did not. A second
+  mechanism for a job one seam already does is refused however clean it is. Two
+  tells you are reinventing: what you are writing re-answers a question an
+  existing seam answered, and your reason for its placement is that a
+  convenient loop was already there rather than that the responsibility belongs
+  to it.
+- **Build the simplest thing that works; size is the signal.** A coding task's
+  budget is about **500 hand-written lines** — generated output does not count,
+  tests count apart — and past **2,000** the change has become a second system,
+  so **stop and ask the user** instead of finishing it. Two tells, checkable
+  before the code exists: you cannot name the one responsibility the change
+  adds, and it is growing to make the end goal pass rather than to put a
+  behaviour where it belongs. Wanting it to work licenses no means to get
+  there.
 - **A gap in the tooling is a bug in the tooling — never a reason to reach
   around it.** When something needs a step core, the CLI, or a companion does
   not perform, the answer is a capability fixed in whichever one owns it, and
@@ -52,7 +68,7 @@ it was seen rather than where it lives.
 ## Build and test
 
 Derived from `.github/workflows/ci.yml`. The Go version comes from `go.mod`
-(1.27.0) — CI reads it with `go-version-file`, so it is never pinned twice.
+(1.27.2) — CI reads it with `go-version-file`, so it is never pinned twice.
 
 ```bash
 go build ./...          # CI: Build
@@ -86,6 +102,7 @@ and a real Go toolchain. If a boundary is hard to reach, reach it anyway.
 | `pkg/code` | Go-specific layer over core's `GoCodeServer`: the in-process formatter/import fixer and the dependency verbs |
 | `pkg/tooling` | adapter only — translates tooling requests onto Code and Runtime |
 | `pkg/builder` | `Create` (scaffold), `Build` (emit the recipe), `Package` (cross-compile with CGO), `Audit`, `SBOM`, `Deploy` |
+| `pkg/runtime/runtime-image/` + `pkg/runtime/runtime-image.json` | the container a Go service builds and runs in (container runtime context): the Dockerfile, and the lock — name, tag, manifest digest, platforms — `RuntimeImage` is read from. Move Go in the Dockerfile, rebuild reproducibly, write the digest into the lock, tag `runtime-v<n>`; `ci.yml` proves the lock reproduces and is anonymously pullable, `runtime-image.yml` publishes it to ghcr.io on the tag |
 | `templates/` | the *content* rendered by core's templator: `factory` (scaffold, never overwrites), `builder` (Dockerfile, regenerated), `deployment` (kustomize) |
 | root `*_test.go` | meta-invariants about CI and repo policy that no package test would notice |
 
@@ -128,7 +145,9 @@ rather than re-deriving from `go list`.
   `.claude/skills/release-go-agent/`.
 - **Releases require CGO** — core's source inspection uses real tree-sitter
   grammars, so every target is built through the `goreleaser-cross` image, whose
-  Go version must match `go.mod`. Disabling CGO to make a build pass ships an
+  Go version must match `go.mod`. **Known gap:** no image ships Go 1.27.2 yet, so
+  releases build in `v1.27.1-1` and Go downloads 1.27.2 — see
+  `.claude/skills/release-go-agent/`. Disabling CGO to make a build pass ships an
   agent whose parser cannot work.
 - **The archive name is a contract with core's downloader**
   (`service-{name}_{version}_{os}_{arch}.tar.gz`). Renaming it breaks install,
