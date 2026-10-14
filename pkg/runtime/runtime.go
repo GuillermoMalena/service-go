@@ -93,7 +93,10 @@ func (s *Runtime) Load(ctx context.Context, req *runtimev0.LoadRequest) (*runtim
 	}
 
 	// Optional: load endpoints if service has any (e.g. HTTP health). No gRPC required.
-	s.Endpoints, _ = s.Base.Service.LoadEndpoints(ctx)
+	s.Endpoints, err = s.Base.Service.LoadEndpoints(ctx)
+	if err != nil {
+		return s.Runtime.LoadErrorf(err, "loading declared endpoints")
+	}
 	// Leave GrpcEndpoint/RestEndpoint unset — go has no gRPC
 
 	return s.Runtime.LoadResponse()
@@ -255,6 +258,10 @@ func (s *Runtime) Start(ctx context.Context, req *runtimev0.StartRequest) (*runt
 		}
 		return s.Runtime.StartError(err)
 	}
+	executable, err := s.RunnerEnvironment.Executable()
+	if err != nil {
+		return s.Runtime.StartErrorf(err, "identifying built executable")
+	}
 
 	err = s.EnvironmentVariables.AddEndpoints(ctx, req.DependenciesNetworkMappings, resources.NetworkAccessFromRuntimeContext(s.Runtime.RuntimeContext))
 	if err != nil {
@@ -306,6 +313,7 @@ func (s *Runtime) Start(ctx context.Context, req *runtimev0.StartRequest) (*runt
 		s.Runtime.MarkRunnerExited(err)
 	}(proc)
 	s.Wool.Trace("runner started successfully")
+	s.Runtime.ReportStartedArtifact(&runtimev0.StartedArtifact{Executable: executable})
 	return s.Runtime.StartResponse()
 }
 

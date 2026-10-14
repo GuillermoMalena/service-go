@@ -8,13 +8,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	codefly "github.com/codefly-dev/sdk-go"
 	"github.com/codefly-dev/core/standards"
+	codefly "github.com/codefly-dev/sdk-go"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+
+	if _, err := codefly.Init(ctx); err != nil {
+		log.Fatalf("initialize Codefly: %v", err)
+	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
@@ -32,7 +36,7 @@ func main() {
 		panic(fmt.Errorf("cannot resolve this service's %s address: %w", standards.HTTP, err))
 	}
 
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", instance.Port), Handler: mux}
+	srv := &http.Server{Addr: instance.Host, Handler: mux}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)

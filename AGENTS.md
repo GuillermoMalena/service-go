@@ -128,11 +128,20 @@ rather than re-deriving from `go list`.
   with `codefly.For(ctx).API(standards.HTTP).ResolveNetworkInstance()` and
   refuses to start when that fails. A hardcoded port is wrong the moment two
   services want it and ignores what the composition assigned, so the service
-  listens where nothing is looking. This agent shipped `Addr: ":8080"` and
+  listens where nothing is looking. Initialize the SDK first, then bind the
+  resolved host and port (including native loopback). The real scaffold process
+  test exercises that address and refusal when no carrier is delivered. This agent shipped `Addr: ":8080"` and
   nothing caught it, because no test ran the service it generates — which is
   also why `NetworkInstance()` is not used here: it returns nil on failure, so
   reading `.Port` off it panics with nothing to read and the only symptom is a
   port that never accepts.
+
+- **Runtime reports the executable it actually started.** After each successful
+  process start, including hot reload, it reports Core's `Executable()` through
+  `runtime-started-artifact/v1`. A failed compilation reports no previous
+  artifact. The CLI uses this report for native build identity; source paths
+  and agent cache layouts are never an alternative. `Runtime.Load` refuses a
+  declared endpoint whose contract cannot be loaded instead of omitting it.
 
 - **`Builder.Build` emits a recipe; it does not build an image.** It renders the
   Dockerfile and copies the source into `<output>/code`, and the CLI runs
