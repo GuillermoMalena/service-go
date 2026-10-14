@@ -253,7 +253,7 @@ func (s *Runtime) Start(ctx context.Context, req *runtimev0.StartRequest) (*runt
 	err := s.RunnerEnvironment.BuildBinary(ctx)
 	if err != nil {
 		if s.Settings.HotReload && s.Watcher != nil {
-			s.Wool.Info("compile error, waiting for hot-reload")
+			s.Wool.Warn("compile error, waiting for hot-reload", wool.ErrField(err))
 			return s.Runtime.StartResponse()
 		}
 		return s.Runtime.StartError(err)

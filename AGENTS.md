@@ -139,7 +139,8 @@ rather than re-deriving from `go list`.
 - **Runtime reports the executable it actually started.** After each successful
   process start, including hot reload, it reports Core's `Executable()` through
   `runtime-started-artifact/v1`. A failed compilation reports no previous
-  artifact. The CLI uses this report for native build identity; source paths
+  artifact. Hot-reload compile failures retain the build diagnostic in the log
+  while waiting for an edit. The CLI uses this report for native build identity; source paths
   and agent cache layouts are never an alternative. `Runtime.Load` refuses a
   declared endpoint whose contract cannot be loaded instead of omitting it.
 
