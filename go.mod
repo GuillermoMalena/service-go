@@ -144,3 +144,6 @@ require (
 	sigs.k8s.io/kustomize/kyaml v0.21.1 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
+
+// STOPGAP until codefly-dev/core#805 is released: the Executable() accessor this needs. Drop and bump core then.
+replace github.com/codefly-dev/core => github.com/GuillermoMalena/core v0.19.5-0.20261015041254-e349d77814e7

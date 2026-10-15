@@ -306,6 +306,12 @@ func (s *Runtime) Start(ctx context.Context, req *runtimev0.StartRequest) (*runt
 		s.Runtime.MarkRunnerExited(err)
 	}(proc)
 	s.Wool.Trace("runner started successfully")
+	// runtime-started-artifact/v1: a compiled runtime's executable IS the build.
+	if exe := s.RunnerEnvironment.Executable(); exe != "" {
+		if abs, err := filepath.Abs(exe); err == nil {
+			s.Runtime.ReportStartedArtifact(&runtimev0.StartedArtifact{Executable: abs})
+		}
+	}
 	return s.Runtime.StartResponse()
 }
 
